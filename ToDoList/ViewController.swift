@@ -9,9 +9,12 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: nil)
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        view.backgroundColor = .white
+        self.title = Constants.title
+        self.navigationItem.rightBarButtonItem = addButton
     }
 
 
