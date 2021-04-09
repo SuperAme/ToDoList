@@ -8,15 +8,27 @@
 import UIKit
 
 class ViewController: UIViewController {
-
-    let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: nil)
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         self.title = Constants.title
-        self.navigationItem.rightBarButtonItem = addButton
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addToDo))
+        
     }
-
+    
+    @objc private func addToDo() {
+        let alert = UIAlertController(title: "Add To Do", message: "", preferredStyle: .alert)
+        alert.addTextField { (textField) in
+            textField.placeholder = "Add your To Do"
+        }
+        alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { [weak self] _ in
+            guard let field = alert.textFields?.first, let text = field.text, !text.isEmpty else {
+                return
+            }
+        }))
+        present(alert, animated: true)
+    }
 
 }
 
