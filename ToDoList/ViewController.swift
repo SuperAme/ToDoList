@@ -24,6 +24,7 @@ class ViewController: UIViewController {
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addToDo))
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         tableView.dataSource = self
+        tableView.delegate = self
     }
     
     override func viewDidLayoutSubviews() {
@@ -75,8 +76,27 @@ extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = toDoList?[indexPath.row].toDo
+        if let toDoCheck = toDoList?[indexPath.row] {
+            cell.textLabel?.text = toDoList?[indexPath.row].toDo
+            cell.accessoryType = toDoCheck.check ? .checkmark : .none
+        }
+        
         return cell
+    }
+}
+
+extension ViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if let toDoCheck = toDoList?[indexPath.row] {
+            do {
+                try realm.write {
+                    toDoCheck.check = !toDoCheck.check
+                }
+            } catch {
+                print("error Saving Data \(error)")
+            }
+        }
+        tableView.reloadData()
     }
 }
 
