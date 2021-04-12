@@ -10,8 +10,11 @@ import RealmSwift
 
 class ViewController: UIViewController {
     
+    let realm = try! Realm()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        print(Realm.Configuration.defaultConfiguration.fileURL)
         view.backgroundColor = .white
         self.title = Constants.title
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addToDo))
@@ -19,6 +22,7 @@ class ViewController: UIViewController {
     }
     
     @objc private func addToDo() {
+        let newToDo = ToDoModel()
         let alert = UIAlertController(title: "Add To Do", message: "", preferredStyle: .alert)
         alert.addTextField { (textField) in
             textField.placeholder = "Add your To Do"
@@ -27,8 +31,20 @@ class ViewController: UIViewController {
             guard let field = alert.textFields?.first, let text = field.text, !text.isEmpty else {
                 return
             }
+            newToDo.toDo = text
+            self?.saveData(toDo: newToDo)
         }))
         present(alert, animated: true)
+    }
+    
+    func saveData(toDo: ToDoModel) {
+        do {
+            try realm.write {
+                realm.add(toDo)
+            }
+        } catch {
+            print("error saving data \(error)")
+        }
     }
 
 }
