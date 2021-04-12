@@ -10,15 +10,29 @@ import RealmSwift
 
 class ViewController: UIViewController {
     
+    let tableView = UITableView()
     let realm = try! Realm()
+    var toDoList: Results<ToDoModel>?
+    var myarray = ["hola", "mundo"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(Realm.Configuration.defaultConfiguration.fileURL)
+        //print(Realm.Configuration.defaultConfiguration.fileURL)
+        view.addSubview(tableView)
         view.backgroundColor = .white
         self.title = Constants.title
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addToDo))
-        
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.dataSource = self
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        tableView.frame = view.bounds
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        loadData()
     }
     
     @objc private func addToDo() {
@@ -37,6 +51,11 @@ class ViewController: UIViewController {
         present(alert, animated: true)
     }
     
+    func loadData() {
+        toDoList = realm.objects(ToDoModel.self)
+        tableView.reloadData()
+    }
+    
     func saveData(toDo: ToDoModel) {
         do {
             try realm.write {
@@ -45,7 +64,19 @@ class ViewController: UIViewController {
         } catch {
             print("error saving data \(error)")
         }
+        tableView.reloadData()
     }
 
+}
+extension ViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return toDoList?.count ?? 1
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        cell.textLabel?.text = toDoList?[indexPath.row].toDo
+        return cell
+    }
 }
 
