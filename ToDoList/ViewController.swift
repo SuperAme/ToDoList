@@ -7,13 +7,13 @@
 
 import UIKit
 import RealmSwift
+import SwipeCellKit
 
 class ViewController: UIViewController {
     
     let tableView = UITableView()
     let realm = try! Realm()
     var toDoList: Results<ToDoModel>?
-    var myarray = ["hola", "mundo"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,7 +22,7 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
         self.title = Constants.title
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addToDo))
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.register(SwipeTableViewCell.self, forCellReuseIdentifier: "cell")
         tableView.dataSource = self
         tableView.delegate = self
     }
@@ -67,6 +67,19 @@ class ViewController: UIViewController {
         }
         tableView.reloadData()
     }
+    
+    func deleteData(with index: Int) {
+        if let toDotoDelete = toDoList?[index] {
+            do{
+                try realm.write {
+                    realm.delete(toDotoDelete)
+                }
+            } catch {
+                print("error deleting data \(error)")
+            }
+        }
+        tableView.reloadData()
+    }
 
 }
 extension ViewController: UITableViewDataSource {
@@ -75,16 +88,30 @@ extension ViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! SwipeTableViewCell
+        cell.delegate = self
         if let toDoCheck = toDoList?[indexPath.row] {
             cell.textLabel?.text = toDoList?[indexPath.row].toDo
             cell.accessoryType = toDoCheck.check ? .checkmark : .none
         }
-        
         return cell
     }
 }
 
+extension ViewController: SwipeTableViewCellDelegate {
+    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> [SwipeAction]? {
+        guard orientation == .right else {
+            return nil
+        }
+        let deleteAction = SwipeAction(style: .default, title: "Delete") { (action, indexPath) in
+            self.deleteData(with: indexPath.row)
+        }
+        deleteAction.transitionDelegate = ScaleTransition.default
+        deleteAction.backgroundColor = .red
+        
+        return [deleteAction]
+    }
+}
 extension ViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let toDoCheck = toDoList?[indexPath.row] {
